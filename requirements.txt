@@ -1,0 +1,31 @@
+# LLM
+openai>=1.30.0
+
+# Config & env
+python-dotenv>=1.0.0
+PyYAML>=6.0
+
+# Voice - STT via Groq API (free, fast, no local model needed)
+groq>=0.9.0
+
+# Voice - STT local fallback (no internet required)
+faster-whisper>=1.0.0
+
+# Voice - TTS (online, free, high quality)
+edge-tts>=6.1.9
+
+# Voice - VAD (very lightweight C extension)
+webrtcvad>=2.0.10
+
+# Audio I/O
+sounddevice>=0.4.6
+numpy>=1.24.0
+
+# Audio file handling
+scipy>=1.11.0
+
+# HTTP (for tools like weather)
+httpx>=0.27.0
+
+# Audio file playback (edge-tts fallback)
+soundfile>=0.12.1

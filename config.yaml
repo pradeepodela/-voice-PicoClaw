@@ -1,0 +1,70 @@
+llm:
+  base_url: "https://openrouter.ai/api/v1"
+  model: "openai/gpt-oss-120b:free"
+  max_tokens: 1024
+  temperature: 0.7
+  # Free models confirmed to support tool/function calling on OpenRouter:
+  # google/gemini-2.0-flash-exp:free   ← recommended (fast, tool calling works)
+  # meta-llama/llama-3.1-8b-instruct:free
+  # mistralai/mistral-7b-instruct:free
+  # NOTE: llama-3.2-3b-instruct:free does NOT support tool calling on OpenRouter
+
+memory:
+  max_short_term: 20        # messages to keep in active context
+  summarize_threshold: 16   # summarize oldest messages when this many exist
+  persist_path: "data/memory.json"
+  summary_max_tokens: 300
+
+voice:
+  enabled: true
+  stt:
+    engine: "groq"              # groq (API, free, fast) | local (on-device, no internet)
+    language: "en"
+    # Groq settings (engine: groq)
+    groq_model: "whisper-large-v3-turbo"   # turbo = fastest; whisper-large-v3 = most accurate
+    # Local faster-whisper settings (engine: local)
+    model: "tiny"               # tiny=~70MB | base=~140MB | small=~460MB
+    device: "cpu"
+    compute_type: "int8"        # int8 is fastest on CPU (RPi)
+  tts:
+    engine: "edge"          # edge (online, neural) | pyttsx3 (offline, robotic)
+    voice: "en-US-JennyNeural"
+    rate: "+0%"
+    pitch: "+0Hz"
+  vad:
+    aggressiveness: 3         # 0-3: 3 = most aggressive noise rejection
+    silence_duration: 0.8     # seconds of silence to end utterance
+    min_speech_duration: 0.5  # discard clips shorter than this (seconds)
+    frame_duration_ms: 30     # must be 10, 20, or 30
+    sample_rate: 16000
+    onset_window_ms: 300      # sustained speech needed to trigger recording
+    onset_ratio: 0.75         # fraction of onset window that must be speech
+    min_rms: 0.015            # energy gate — clips below this are discarded (not sent to STT)
+  wake_word:
+    enabled: false          # set true to require wake word before listening
+    word: "hey pi"          # spoken phrase (uses simple keyword detection)
+
+picoclaw:
+  binary: "picoclaw"            # binary name (must be in PATH)
+  timeout: 90                   # seconds to wait for a picoclaw response
+  use_as_primary: true          # true  → ALL queries routed through PicoClaw (no OpenRouter)
+                                # false → OpenRouter is primary; picoclaw_agent is a callable tool
+  auto_start_gateway: false     # false = don't start a gateway (you run it yourself in another terminal)
+                                # true  = auto-start gateway on launch (safe — skips if one is already running)
+  history_turns: 4              # conversation turns to inject into each picoclaw query (for context)
+  reminder_port: 7700           # local port our agent listens on for cron job callbacks
+
+agent:
+  name: "RPI Agent"
+  system_prompt: |
+    You are a helpful AI assistant running on a Raspberry Pi.
+    You have access to tools and a persistent memory of past conversations.
+    Be concise but complete — the user may be listening via speakers, so avoid
+    overly long responses unless detail is needed. When using a tool, briefly
+    say what you're doing. Answer questions directly. Today's context is
+    maintained across turns via your memory system.
+
+    You have access to a picoclaw_agent tool. Use it whenever the user asks
+    about current events, news, live data, web searches, or tasks that need
+    running code or accessing the internet. Picoclaw will handle those
+    autonomously and return results for you to summarise.
